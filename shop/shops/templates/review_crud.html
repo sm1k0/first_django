@@ -38,25 +38,51 @@
         return gk_fileData[filename] || "";
         }
         </script>{% extends 'base.html' %}
-{% block title %}Все товары - Shop{% endblock %}
+{% load django_bootstrap5 %}
 {% block content %}
 <div class="container">
     <div class="content">
-        <h1>Все товары</h1>
-        <p>Полный каталог наших товаров:</p>
-        <div class="row">
-            {% for product in object_list %}
-            <div class="col-md-4">
-                <h3>{{ product.name }}</h3>
-                <p>{{ product.description|truncatewords:20 }}</p>
-                {% if product.main_image %}
-                <img src="{{ product.main_image }}" alt="{{ product.name }}" style="max-width: 200px;">
-                {% endif %}
-            </div>
+        <h1>Управление отзывами</h1>
+        
+        <!-- Форма для создания/редактирования -->
+        <h2>{% if edit_review %}Редактировать отзыв{% else %}Добавить отзыв{% endif %}</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            {% if edit_review %}
+            <a href="{% url 'review_crud' %}" class="btn btn-secondary">Отмена</a>
+            {% endif %}
+        </form>
+
+        <!-- Список отзывов -->
+        <h2>Список отзывов</h2>
+        <ul>
+            {% for review in reviews %}
+            <li>
+                {{ review.product }} (Оценка: {{ review.rating }})
+                <a href="{% url 'review_crud' review.pk %}" class="btn btn-info btn-sm">Редактировать</a>
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="pk" value="{{ review.pk }}">
+                    <button type="submit" name="delete" class="btn btn-danger btn-sm">Удалить</button>
+                </form>
+            </li>
             {% empty %}
-            <p>Товары отсутствуют.</p>
+            <p>Отзывы отсутствуют.</p>
             {% endfor %}
-        </div>
+        </ul>
+
+        <!-- Подробности выбранного отзыва -->
+        {% if edit_review %}
+        <h2>Подробности отзыва</h2>
+        <p><strong>Товар:</strong> {{ edit_review.product }}</p>
+        <p><strong>Покупатель:</strong> {{ edit_review.customer }}</p>
+        <p><strong>Оценка:</strong> {{ edit_review.rating }}</p>
+        <p><strong>Комментарий:</strong> {{ edit_review.comment }}</p>
+        <p><strong>Дата:</strong> {{ edit_review.created_at }}</p>
+        {% endif %}
     </div>
 </div>
+{% bootstrap_messages %}
 {% endblock %}

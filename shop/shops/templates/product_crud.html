@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% block content %}
+<div class="container">
+    <div class="content">
+        <h1>Управление товарами и производителями</h1>
+        
+        <!-- Форма для создания/редактирования товара -->
+        <h2>{% if edit_product %}Редактировать товар{% else %}Добавить товар{% endif %}</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% bootstrap_form product_form %}
+            <button type="submit" name="save_product" class="btn btn-primary">Сохранить товар</button>
+            {% if edit_product %}
+            <a href="{% url 'product_crud' %}" class="btn btn-secondary">Отмена</a>
+            {% endif %}
+        </form>
+
+        <!-- Форма для создания/редактирования производителя -->
+       
+        <!-- Список товаров -->
+        <h2>Список товаров</h2>
+        <div class="row">
+            {% for product in products %}
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    {% if product.main_image %}
+                    <img src="{{ product.main_image }}" alt="{{ product.name }}" class="card-img-top" style="height: 200px; object-fit: contain;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">Цена: {{ product.price }} руб.</p>
+                        <p class="card-text">Остаток: {{ product.stock }}</p>
+                        <p class="card-text">Категория: {{ product.category }}</p>
+                        {% if product.manufacturer %}
+                        <p class="card-text">Производитель: {{ product.manufacturer }}</p>
+                        {% endif %}
+                        <a href="{% url 'product_crud' product.slug %}" class="btn btn-info btn-sm">Редактировать</a>
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}чй
+                            <input type="hidden" name="slug" value="{{ product.slug }}">
+                            <button type="submit" name="delete_product" class="btn btn-danger btn-sm">Удалить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p>Товары отсутствуют.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Список производителей -->
+        
+
+        <!-- Подробности выбранного товара -->
+        {% if edit_product %}
+        <h2>Подробности товара</h2>
+        <p><strong>Название:</strong> {{ edit_product.name }}</p>
+        <p><strong>Slug:</strong> {{ edit_product.slug }}</p>
+        <p><strong>Описание:</strong> {{ edit_product.description }}</p>
+        <p><strong>Цена:</strong> {{ edit_product.price }} руб.</p>
+        <p><strong>Остаток:</strong> {{ edit_product.stock }}</p>
+        <p><strong>Категория:</strong> {{ edit_product.category }}</p>
+        <p><strong>Производитель:</strong> {{ edit_product.manufacturer|default:"Не указан" }}</p>
+        {% if edit_product.main_image %}
+        <p><strong>Изображение:</strong></p>
+        <img src="{{ edit_product.main_image }}" alt="{{ edit_product.name }}" style="max-width: 200px;">
+        {% else %}
+        <p><strong>Изображение:</strong> Не указано</p>
+        {% endif %}
+        {% endif %}
+
+        <!-- Подробности выбранного производителя -->
+       
+    </div>
+</div>
+{% bootstrap_messages %}
+{% endblock %}

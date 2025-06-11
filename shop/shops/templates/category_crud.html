@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% block content %}
+<div class="container">
+    <div class="content">
+        <h1>Управление категориями</h1>
+        
+        <h2>{% if edit_category %}Редактировать категорию{% else %}Добавить категорию{% endif %}</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            <p class="text-muted">Поле "Ссылка на изображение" можно оставить пустым.</p>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            {% if edit_category %}
+            <a href="{% url 'category_crud' %}" class="btn btn-secondary">Отмена</a>
+            {% endif %}
+        </form>
+
+        <h2>Список категорий</h2>
+        <ul>
+            {% for category in categories %}
+            <li>
+                {{ category.name }}
+                {% if category.image %}
+                <img src="{{ category.image }}" alt="{{ category.name }}" style="max-width: 100px; margin-left: 10px;">
+                {% endif %}
+                <a href="{% url 'category_crud' category.slug %}" class="btn btn-info btn-sm">Редактировать</a>
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="slug" value="{{ category.slug }}">
+                    <button type="submit" name="delete" class="btn btn-danger btn-sm">Удалить</button>
+                </form>
+            </li>
+            {% empty %}
+            <p>Категории отсутствуют.</p>
+            {% endfor %}
+        </ul>
+
+        <!-- Подробности выбранной категории -->
+        {% if edit_category %}
+        <h2>Подробности категории</h2>
+        <p><strong>Название:</strong> {{ edit_category.name }}</p>
+        <p><strong>Slug:</strong> {{ edit_category.slug }}</p>
+        {% if edit_category.image %}
+        <p><strong>Изображение:</strong></p>
+        <img src="{{ edit_category.image }}" alt="{{ edit_category.name }}" style="max-width: 200px;">
+        {% else %}
+        <p><strong>Изображение:</strong> Не указано</p>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% bootstrap_messages %}
+{% endblock %}
