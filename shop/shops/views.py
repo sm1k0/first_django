@@ -1,9 +1,15 @@
-from django.views.generic import View
+from django.views.generic import View, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from .models import Category, Product, Customer, Order, Review, Manufacturer
 from .forms import CategoryForm, ProductForm, CustomerForm, OrderForm, ReviewForm, ManufacturerForm
+
+class AdminMenuView(View):
+    template_name = 'admin_menu.html'
+
+    def get(self, request):
+        return render(request, self.template_name)
 
 class CategoryCRUDView(View):
     template_name = 'category_crud.html'
@@ -19,6 +25,7 @@ class CategoryCRUDView(View):
             'categories': categories,
             'form': form,
             'edit_category': edit_category,
+            'request': request,
         })
 
     def post(self, request, slug=None):
@@ -38,6 +45,7 @@ class CategoryCRUDView(View):
             'categories': categories,
             'form': form,
             'edit_category': get_object_or_404(Category, slug=slug) if slug else None,
+            'request': request,
         })
 
 class ProductCRUDView(View):
@@ -65,6 +73,7 @@ class ProductCRUDView(View):
             'manufacturer_form': manufacturer_form,
             'edit_product': edit_product,
             'edit_manufacturer': edit_manufacturer,
+            'request': request,
         })
 
     def post(self, request, slug=None, manufacturer_id=None):
@@ -99,6 +108,7 @@ class ProductCRUDView(View):
                     'manufacturer_form': manufacturer_form,
                     'edit_product': get_object_or_404(Product, slug=slug) if slug else None,
                     'edit_manufacturer': None,
+                    'request': request,
                 })
 
         if 'save_manufacturer' in request.POST:
@@ -117,6 +127,7 @@ class ProductCRUDView(View):
                     'manufacturer_form': manufacturer_form,
                     'edit_product': None,
                     'edit_manufacturer': get_object_or_404(Manufacturer, id=manufacturer_id) if manufacturer_id else None,
+                    'request': request,
                 })
 
         # Fallback in case of unexpected POST
@@ -127,6 +138,7 @@ class ProductCRUDView(View):
             'manufacturer_form': ManufacturerForm(),
             'edit_product': None,
             'edit_manufacturer': None,
+            'request': request,
         })
 
 class CustomerCRUDView(View):
@@ -143,6 +155,7 @@ class CustomerCRUDView(View):
             'customers': customers,
             'form': form,
             'edit_customer': edit_customer,
+            'request': request,
         })
 
     def post(self, request, pk=None):
@@ -162,6 +175,7 @@ class CustomerCRUDView(View):
             'customers': customers,
             'form': form,
             'edit_customer': get_object_or_404(Customer, pk=pk) if pk else None,
+            'request': request,
         })
 
 class OrderCRUDView(View):
@@ -178,6 +192,7 @@ class OrderCRUDView(View):
             'orders': orders,
             'form': form,
             'edit_order': edit_order,
+            'request': request,
         })
 
     def post(self, request, pk=None):
@@ -197,6 +212,7 @@ class OrderCRUDView(View):
             'orders': orders,
             'form': form,
             'edit_order': get_object_or_404(Order, pk=pk) if pk else None,
+            'request': request,
         })
 
 class ReviewCRUDView(View):
@@ -213,6 +229,7 @@ class ReviewCRUDView(View):
             'reviews': reviews,
             'form': form,
             'edit_review': edit_review,
+            'request': request,
         })
 
     def post(self, request, pk=None):
@@ -232,28 +249,41 @@ class ReviewCRUDView(View):
             'reviews': reviews,
             'form': form,
             'edit_review': get_object_or_404(Review, pk=pk) if pk else None,
+            'request': request,
         })
 
+class AllProductsView(ListView):
+    template_name = 'all_products.html'
+    context_object_name = 'products'
+    model = Product
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['request'] = self.request
+        return context
+
 def home(request):
-    return render(request, 'home.html')
+    # Получаем три самых популярных товара по количеству в наличии
+    popular_products = Product.objects.order_by('-stock')[:3]
+    return render(request, 'home.html', {'request': request, 'popular_products': popular_products})
 
 def about(request):
-    return render(request, 'about.html')
+    return render(request, 'about.html', {'request': request})
 
 def contacts(request):
-    return render(request, 'contacts.html')
+    return render(request, 'contacts.html', {'request': request})
 
 def find_us(request):
-    return render(request, 'find_us.html')
+    return render(request, 'find_us.html', {'request': request})
 
 def products(request):
-    return render(request, 'products.html')
+    return render(request, 'products.html', {'request': request})
 
 def categories(request):
-    return render(request, 'categories.html')
+    return render(request, 'categories.html', {'request': request})
 
 def all_products(request):
-    return render(request, 'all_products.html')
+    return render(request, 'all_products.html', {'request': request})
 
 def cart(request):
-    return render(request, 'cart.html')
+    return render(request, 'cart.html', {'request': request})

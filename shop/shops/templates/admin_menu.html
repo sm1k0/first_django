@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% block content %}
+<div class="container">
+    <h1>Админская панель</h1>
+    <div class="list-group">
+        <a href="{% url 'category_crud' %}" class="list-group-item list-group-item-action">Управление категориями</a>
+        <a href="{% url 'product_crud' %}" class="list-group-item list-group-item-action">Управление товарами и производителями</a>
+        <a href="{% url 'customer_crud' %}" class="list-group-item list-group-item-action">Управление покупателями</a>
+        <a href="{% url 'order_crud' %}" class="list-group-item list-group-item-action">Управление заказами</a>
+        <a href="{% url 'review_crud' %}" class="list-group-item list-group-item-action">Управление отзывами</a>
+    </div>
+</div>
+{% endblock %}

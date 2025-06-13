@@ -1,0 +1,243 @@
+/* Общие стили */
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #2c2c2c, #1a1a1a); /* Темный серый градиент */
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    color: #e0e0e0; /* Светло-серый текст для контраста */
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Навигационная панель с Liquid Glass эффектом */
+.navbar {
+    background: rgba(44, 44, 44, 0.7); /* Полупрозрачный темный серый */
+    backdrop-filter: blur(12px); /* Рассеивание света */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Легкий белый контур */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Глубина */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.navbar-brand, .nav-link {
+    color: #ffffff !important; /* Белый текст */
+    transition: color 0.3s ease, transform 0.2s ease, text-shadow 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #f0f0f0 !important; /* Легкий серый акцент при наведении */
+    transform: translateY(-2px);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4); /* Рассеивание света */
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Контейнер и контент с эффектом стеклянных слоев */
+.container {
+    margin-top: 20px;
+    margin-bottom: 60px;
+    flex: 1;
+    position: relative;
+}
+
+.content {
+    background: rgba(44, 44, 44, 0.5); /* Полупрозрачный темный серый слой */
+    backdrop-filter: blur(15px); /* Рассеивание света */
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.1); /* Глубина и внутреннее свечение */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Легкий белый контур */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.content:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), inset 0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+h1 {
+    color: #ffffff; /* Белый заголовок */
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); /* Глубина текста */
+}
+
+p, li {
+    color: #e0e0e0; /* Светло-серый текст для читаемости */
+}
+
+/* Кнопки с Liquid Glass эффектом */
+.btn-primary {
+    background: linear-gradient(135deg, rgba(44, 44, 44, 0.8), rgba(26, 26, 26, 0.6)); /* Темный серый градиент */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.25);
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.9), rgba(44, 44, 44, 0.7));
+}
+
+.btn-secondary, .btn-info, .btn-danger {
+    background: rgba(44, 44, 44, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: transform 0.2s ease, background 0.3s ease;
+    color: #e0e0e0;
+}
+
+.btn-secondary:hover, .btn-info:hover, .btn-danger:hover {
+    transform: scale(1.05);
+    background: rgba(26, 26, 26, 0.6);
+}
+
+/* Карточки товаров с Liquid Glass */
+.card {
+    background: rgba(44, 44, 44, 0.6); /* Полупрозрачный темный серый слой */
+    backdrop-filter: blur(10px); /* Рассеивание света */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.15);
+}
+
+.card-img-top {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+.card-body {
+    color: #e0e0e0;
+    background: rgba(26, 26, 26, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+/* Футер с Liquid Glass */
+footer {
+    background: rgba(44, 44, 44, 0.5);
+    backdrop-filter: blur(10px);
+    color: #e0e0e0;
+    text-align: center;
+    padding: 15px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    position: relative;
+}
+
+/* Баннер с Liquid Glass */
+.banner {
+    background: linear-gradient(135deg, rgba(44, 44, 44, 0.8), rgba(26, 26, 26, 0.6));
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    animation: fadeIn 1s ease-in-out;
+}
+
+.banner h2 {
+    color: #ffffff;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.banner p {
+    color: #e0e0e0;
+    margin-bottom: 15px;
+}
+
+/* Виджет корзины с Liquid Glass */
+.cart-widget {
+    margin-left: 20px;
+    background: rgba(44, 44, 44, 0.5);
+    backdrop-filter: blur(10px);
+    padding: 5px 10px;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cart-widget:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.cart-widget .fa-shopping-cart {
+    margin-right: 5px;
+    color: #e0e0e0;
+}
+
+/* Панель уведомлений */
+.admin-notifications {
+    margin-left: 20px;
+    background: rgba(44, 44, 44, 0.5);
+    backdrop-filter: blur(10px);
+    padding: 5px 10px;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-notifications:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.admin-notifications .fa-bell {
+    margin-right: 5px;
+    color: #e0e0e0;
+}
+
+/* Блок рекомендаций с Liquid Glass */
+.recommendations {
+    background: rgba(44, 44, 44, 0.6);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    padding: 15px;
+    margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.recommendations h3 {
+    color: #ffffff;
+    margin-bottom: 10px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.15);
+}
+
+.recommendations p {
+    color: #e0e0e0;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.container {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.card {
+    animation: fadeIn 0.7s ease-in-out;
+}

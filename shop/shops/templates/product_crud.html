@@ -17,7 +17,16 @@
         </form>
 
         <!-- Форма для создания/редактирования производителя -->
-       
+        <h2>{% if edit_manufacturer %}Редактировать производителя{% else %}Добавить производителя{% endif %}</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% bootstrap_form manufacturer_form %}
+            <button type="submit" name="save_manufacturer" class="btn btn-primary">Сохранить производителя</button>
+            {% if edit_manufacturer %}
+            <a href="{% url 'product_crud' %}" class="btn btn-secondary">Отмена</a>
+            {% endif %}
+        </form>
+
         <!-- Список товаров -->
         <h2>Список товаров</h2>
         <div class="row">
@@ -37,7 +46,7 @@
                         {% endif %}
                         <a href="{% url 'product_crud' product.slug %}" class="btn btn-info btn-sm">Редактировать</a>
                         <form method="post" style="display:inline;">
-                            {% csrf_token %}чй
+                            {% csrf_token %}
                             <input type="hidden" name="slug" value="{{ product.slug }}">
                             <button type="submit" name="delete_product" class="btn btn-danger btn-sm">Удалить</button>
                         </form>
@@ -50,7 +59,22 @@
         </div>
 
         <!-- Список производителей -->
-        
+        <h2>Список производителей</h2>
+        <ul>
+            {% for manufacturer in manufacturers %}
+            <li>
+                {{ manufacturer.name }} ({{ manufacturer.country }})
+                <a href="{% url 'product_crud' manufacturer_id=manufacturer.id %}" class="btn btn-info btn-sm">Редактировать</a>
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="manufacturer_id" value="{{ manufacturer.id }}">
+                    <button type="submit" name="delete_manufacturer" class="btn btn-danger btn-sm">Удалить</button>
+                </form>
+            </li>
+            {% empty %}
+            <p>Производители отсутствуют.</p>
+            {% endfor %}
+        </ul>
 
         <!-- Подробности выбранного товара -->
         {% if edit_product %}
@@ -71,7 +95,11 @@
         {% endif %}
 
         <!-- Подробности выбранного производителя -->
-       
+        {% if edit_manufacturer %}
+        <h2>Подробности производителя</h2>
+        <p><strong>Название:</strong> {{ edit_manufacturer.name }}</p>
+        <p><strong>Страна:</strong> {{ edit_manufacturer.country }}</p>
+        {% endif %}
     </div>
 </div>
 {% bootstrap_messages %}

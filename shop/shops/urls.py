@@ -1,26 +1,40 @@
 from django.urls import path
-from . import views
+from .views import (
+    AdminMenuView,
+    AllProductsView,
+    CategoryCRUDView,
+    ProductCRUDView,
+    CustomerCRUDView,
+    OrderCRUDView,
+    ReviewCRUDView,
+    home,
+    about,
+    contacts,
+    find_us,
+    products,
+    categories,
+    cart
+)
 
 urlpatterns = [
-    # CRUD URLs
-    path('categories/', views.CategoryCRUDView.as_view(), name='category_crud'),
-    path('categories/<slug:slug>/', views.CategoryCRUDView.as_view(), name='category_crud'),
-    path('products/', views.ProductCRUDView.as_view(), name='product_crud'),
-    path('products/<slug:slug>/', views.ProductCRUDView.as_view(), name='product_crud'),
-    path('customers/', views.CustomerCRUDView.as_view(), name='customer_crud'),
-    path('customers/<int:pk>/', views.CustomerCRUDView.as_view(), name='customer_crud'),
-    path('orders/', views.OrderCRUDView.as_view(), name='order_crud'),
-    path('orders/<int:pk>/', views.OrderCRUDView.as_view(), name='order_crud'),
-    path('reviews/', views.ReviewCRUDView.as_view(), name='review_crud'),
-    path('reviews/<int:pk>/', views.ReviewCRUDView.as_view(), name='review_crud'),
-    
-    # Existing URLs
-    path('', views.home, name='home'),
-    path('about/', views.about, name='about'),
-    path('contacts/', views.contacts, name='contacts'),
-    path('find-us/', views.find_us, name='find_us'),
-    path('products/', views.products, name='products'),
-    path('categories/', views.categories, name='categories'),
-    path('all-products/', views.all_products, name='all_products'),
-    path('cart/', views.cart, name='cart'),
+    path('', home, name='home'),
+    path('about/', about, name='about'),
+    path('contacts/', contacts, name='contacts'),
+    path('find-us/', find_us, name='find_us'),
+    path('products/', products, name='products'),
+    path('categories/', categories, name='categories'),
+    path('all-products/', AllProductsView.as_view(), name='all_products'),
+    path('cart/', cart, name='cart'),
+    path('admin/', AdminMenuView.as_view(), name='admin_dashboard'),
+    path('admin/categories/', CategoryCRUDView.as_view(), name='category_crud'),
+    path('admin/categories/<slug:slug>/', CategoryCRUDView.as_view(), name='category_crud'),
+    path('admin/products/', ProductCRUDView.as_view(), name='product_crud'),
+    path('admin/products/<slug:slug>/', ProductCRUDView.as_view(), name='product_crud'),
+    path('admin/products/<int:manufacturer_id>/', ProductCRUDView.as_view(), name='product_crud'),
+    path('admin/customers/', CustomerCRUDView.as_view(), name='customer_crud'),
+    path('admin/customers/<int:pk>/', CustomerCRUDView.as_view(), name='customer_crud'),
+    path('admin/orders/', OrderCRUDView.as_view(), name='order_crud'),
+    path('admin/orders/<int:pk>/', OrderCRUDView.as_view(), name='order_crud'),
+    path('admin/reviews/', ReviewCRUDView.as_view(), name='review_crud'),
+    path('admin/reviews/<int:pk>/', ReviewCRUDView.as_view(), name='review_crud'),
 ]
