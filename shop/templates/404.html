@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Страница не найдена - Ашан{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="content" style="text-align: center; padding: 50px;">
+        <h1 style="font-size: 5rem; color: #ff4d4d; text-shadow: 0 0 15px rgba(255, 77, 77, 0.5);">404</h1>
+        <h2>Ой, страница не найдена!</h2>
+        <p>Похоже, вы заблудились в нашем магазине. Давайте вернёмся к покупкам!</p>
+        <a href="{% url 'home' %}" class="btn btn-primary mt-3">На главную</a>
+        <div class="error-image mt-4">
+            <img src="{% static 'images/404_image.png' %}" alt="404 Error" style="max-width: 100%; height: auto; animation: slide-up 1s ease-in-out;">
+        </div>
+    </div>
+</div>
+<style>
+@keyframes slide-up {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+</style>
+{% endblock %}

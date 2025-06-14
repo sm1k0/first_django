@@ -6,11 +6,21 @@
         <h1>Управление категориями</h1>
         
         <h2>{% if edit_category %}Редактировать категорию{% else %}Добавить категорию{% endif %}</h2>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data" action="{% if edit_category %}{% url 'category_update' edit_category.slug %}{% else %}{% url 'category_create' %}{% endif %}">
             {% csrf_token %}
             {% bootstrap_form form %}
-            <p class="text-muted">Поле "Ссылка на изображение" можно оставить пустым.</p>
-            <button type="submit" class="btn btn-primary">Сохранить</button>
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">Сохранить категорию</button>
             {% if edit_category %}
             <a href="{% url 'category_crud' %}" class="btn btn-secondary">Отмена</a>
             {% endif %}
@@ -20,15 +30,11 @@
         <ul>
             {% for category in categories %}
             <li>
-                {{ category.name }}
-                {% if category.image %}
-                <img src="{{ category.image }}" alt="{{ category.name }}" style="max-width: 100px; margin-left: 10px;">
-                {% endif %}
-                <a href="{% url 'category_crud' category.slug %}" class="btn btn-info btn-sm">Редактировать</a>
-                <form method="post" style="display:inline;">
+                {{ category.name }} ({{ category.slug }})
+                <a href="{% url 'category_update' category.slug %}" class="btn btn-info btn-sm">Редактировать</a>
+                <form method="post" action="{% url 'category_delete' category.slug %}" style="display:inline;">
                     {% csrf_token %}
-                    <input type="hidden" name="slug" value="{{ category.slug }}">
-                    <button type="submit" name="delete" class="btn btn-danger btn-sm">Удалить</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                 </form>
             </li>
             {% empty %}
@@ -36,14 +42,13 @@
             {% endfor %}
         </ul>
 
-        <!-- Подробности выбранной категории -->
         {% if edit_category %}
         <h2>Подробности категории</h2>
         <p><strong>Название:</strong> {{ edit_category.name }}</p>
         <p><strong>Slug:</strong> {{ edit_category.slug }}</p>
         {% if edit_category.image %}
         <p><strong>Изображение:</strong></p>
-        <img src="{{ edit_category.image }}" alt="{{ edit_category.name }}" style="max-width: 200px;">
+        <img src="{{ edit_category.image.url }}" alt="{{ edit_category.name }}" style="max-width: 200px;">
         {% else %}
         <p><strong>Изображение:</strong> Не указано</p>
         {% endif %}

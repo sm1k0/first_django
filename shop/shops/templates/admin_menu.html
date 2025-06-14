@@ -1,14 +1,18 @@
 {% extends 'base.html' %}
-{% load django_bootstrap5 %}
+{% block title %}Админ-панель - Ашан{% endblock %}
 {% block content %}
 <div class="container">
-    <h1>Админская панель</h1>
-    <div class="list-group">
-        <a href="{% url 'category_crud' %}" class="list-group-item list-group-item-action">Управление категориями</a>
-        <a href="{% url 'product_crud' %}" class="list-group-item list-group-item-action">Управление товарами и производителями</a>
-        <a href="{% url 'customer_crud' %}" class="list-group-item list-group-item-action">Управление покупателями</a>
-        <a href="{% url 'order_crud' %}" class="list-group-item list-group-item-action">Управление заказами</a>
-        <a href="{% url 'review_crud' %}" class="list-group-item list-group-item-action">Управление отзывами</a>
+    <div class="content">
+        <h1>Панель администратора</h1>
+        <p>Управляйте магазином:</p>
+        <ul class="list-group">
+            <li class="list-group-item"><a href="{% url 'category_crud' %}">Управление категориями</a></li>
+            <li class="list-group-item"><a href="{% url 'product_crud' %}">Управление товарами и производителями</a></li>
+            <li class="list-group-item"><a href="{% url 'customer_crud' %}">Управление покупателями</a></li>
+            <li class="list-group-item"><a href="{% url 'order_crud' %}">Управление заказами</a></li>
+            <li class="list-group-item"><a href="{% url 'review_crud' %}">Управление отзывами</a></li>
+            <li class="list-group-item"><a href="{% url 'user_management' %}">Управление пользователями</a></li>
+        </ul>
     </div>
 </div>
 {% endblock %}

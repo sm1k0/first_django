@@ -1,26 +1,49 @@
 {% extends 'base.html' %}
-{% block title %}Главная - Shop{% endblock %}
+{% load django_bootstrap5 %}
+{% block title %}Главная - Ашан{% endblock %}
 {% block content %}
 <div class="container">
     <div class="content">
-        {% include 'partials/banner.html' %}
-        <h1>Добро пожаловать в наш магазин!</h1>
-        <p>Мы предлагаем широкий ассортимент товаров высокого качества. Ознакомьтесь с нашими категориями и найдите то, что вам нужно!</p>
-        <div class="row">
-            <div class="col-md-4">
-                <h3>Новинки</h3>
-                <p>Ознакомьтесь с нашими последними поступлениями.</p>
-            </div>
-            <div class="col-md-4">
-                <h3>Акции</h3>
-                <p>Воспользуйтесь нашими специальными предложениями!</p>
-            </div>
-            <div class="col-md-4">
-                <h3>Популярное</h3>
-                <p>Самые востребованные товары этого сезона.</p>
-            </div>
+        <div class="banner">
+            <h2>Добро пожаловать в Ашан!</h2>
+            <p>Лучшие товары по доступным ценам для всей семьи.</p>
         </div>
-        {% include 'partials/recommendations.html' %}
+        <h1>О нашем магазине</h1>
+        <p>Ашан — это место, где вы найдете всё необходимое для вашего дома, семьи и отдыха. Мы предлагаем широкий ассортимент товаров: от свежих продуктов питания до электроники и товаров для дома. Наша миссия — сделать покупки удобными, доступными и приятными для каждого клиента.</p>
+        <p>Почему выбирают Ашан?</p>
+        <ul>
+            <li>Качественные товары по конкурентным ценам.</li>
+            <li>Ежедневные скидки и акции.</li>
+            <li>Удобный онлайн-магазин с доставкой.</li>
+            <li>Профессиональная поддержка клиентов.</li>
+            <li>Экологичные решения и забота о природе.</li>
+        </ul>
+        <h1>Популярные товары</h1>
+        <div class="row">
+            {% for product in popular_products %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.description|truncatewords:20 }}</p>
+                        <p class="card-text"><strong>Цена:</strong> {{ product.price }} ₽</p>
+                        <p class="card-text"><strong>В наличии:</strong> {{ product.stock }}</p>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'add_to_cart' product.id %}" class="btn btn-primary">Добавить в корзину</a>
+                        {% else %}
+                        <p>Пожалуйста, <a href="{% url 'login' %}">авторизуйтесь</a> для добавления в корзину.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p>Популярные товары отсутствуют.</p>
+            {% endfor %}
+        </div>
     </div>
 </div>
+{% bootstrap_messages %}
 {% endblock %}

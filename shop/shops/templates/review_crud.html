@@ -1,71 +1,40 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script>{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load django_bootstrap5 %}
 {% block content %}
 <div class="container">
     <div class="content">
         <h1>Управление отзывами</h1>
         
-        <!-- Форма для создания/редактирования -->
         <h2>{% if edit_review %}Редактировать отзыв{% else %}Добавить отзыв{% endif %}</h2>
-        <form method="post">
+        <form method="post" action="{% if edit_review %}{% url 'review_update' edit_review.pk %}{% else %}{% url 'review_create' %}{% endif %}">
             {% csrf_token %}
             {% bootstrap_form form %}
-            <button type="submit" class="btn btn-primary">Сохранить</button>
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">Сохранить отзыв</button>
             {% if edit_review %}
             <a href="{% url 'review_crud' %}" class="btn btn-secondary">Отмена</a>
             {% endif %}
         </form>
 
-        <!-- Список отзывов -->
         <h2>Список отзывов</h2>
         <ul>
             {% for review in reviews %}
             <li>
-                {{ review.product }} (Оценка: {{ review.rating }})
-                <a href="{% url 'review_crud' review.pk %}" class="btn btn-info btn-sm">Редактировать</a>
-                <form method="post" style="display:inline;">
+                Отзыв на {{ review.product }} от {{ review.customer }} (Оценка: {{ review.rating }})
+                <a href="{% url 'review_update' review.pk %}" class="btn btn-info btn-sm">Редактировать</a>
+                <form method="post" action="{% url 'review_delete' review.pk %}" style="display:inline;">
                     {% csrf_token %}
-                    <input type="hidden" name="pk" value="{{ review.pk }}">
-                    <button type="submit" name="delete" class="btn btn-danger btn-sm">Удалить</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                 </form>
             </li>
             {% empty %}
@@ -73,14 +42,13 @@
             {% endfor %}
         </ul>
 
-        <!-- Подробности выбранного отзыва -->
         {% if edit_review %}
         <h2>Подробности отзыва</h2>
         <p><strong>Товар:</strong> {{ edit_review.product }}</p>
         <p><strong>Покупатель:</strong> {{ edit_review.customer }}</p>
         <p><strong>Оценка:</strong> {{ edit_review.rating }}</p>
         <p><strong>Комментарий:</strong> {{ edit_review.comment }}</p>
-        <p><strong>Дата:</strong> {{ edit_review.created_at }}</p>
+        <p><strong>Дата создания:</strong> {{ edit_review.created_at }}</p>
         {% endif %}
     </div>
 </div>

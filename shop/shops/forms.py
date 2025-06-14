@@ -1,4 +1,6 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from .models import Category, Product, Customer, Order, Review, Manufacturer
 
 class CategoryForm(forms.ModelForm):
@@ -8,7 +10,7 @@ class CategoryForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'slug': forms.TextInput(attrs={'class': 'form-control'}),
-            'image': forms.URLInput(attrs={'class': 'form-control', 'required': False}),
+            'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -26,13 +28,13 @@ class ProductForm(forms.ModelForm):
             'price': forms.NumberInput(attrs={'class': 'form-control'}),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
-            'manufacturer': forms.Select(attrs={'class': 'form-control', 'required': False}), 
-            'main_image': forms.URLInput(attrs={'class': 'form-control'}),
+            'manufacturer': forms.Select(attrs={'class': 'form-control', 'required': False}),
+            'main_image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['manufacturer'].required = False  
+        self.fields['manufacturer'].required = False
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -72,4 +74,14 @@ class ManufacturerForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'country': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class RegisterForm(UserCreationForm):
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
         }

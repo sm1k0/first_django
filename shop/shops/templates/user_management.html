@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 static %}
+{% block title %}Управление пользователями - Ашан{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="content">
+        <h1>Управление пользователями</h1>
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addUserModal">Добавить пользователя</button>
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя пользователя</th>
+                        <th>Email</th>
+                        <th>Имя</th>
+                        <th>Фамилия</th>
+                        <th>Телефон</th>
+                        <th>Админ</th>
+                        <th>Активен</th>
+                        <th>Дата регистрации</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr data-user-id="{{ user.id }}">
+                        <td>{{ user.id }}</td>
+                        <td class="editable" data-field="username">{{ user.username }}</td>
+                        <td class="editable" data-field="email">{{ user.email }}</td>
+                        <td class="editable" data-field="first_name">{{ user.customer.first_name|default:"-" }}</td>
+                        <td class="editable" data-field="last_name">{{ user.customer.last_name|default:"-" }}</td>
+                        <td class="editable" data-field="phone">{{ user.customer.phone|default:"-" }}</td>
+                        <td class="editable" data-field="is_staff">{{ user.is_staff|yesno:"Да,Нет" }}</td>
+                        <td class="editable" data-field="is_active">{{ user.is_active|yesno:"Да,Нет" }}</td>
+                        <td>{{ user.date_joined|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <form method="post" action="{% url 'user_delete' user.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10">Пользователи отсутствуют.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для добавления пользователя -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: rgba(44, 44, 44, 0.7); backdrop-filter: blur(15px); color: #e0e0e0;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLabel">Добавить пользователя</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm" method="post" action="{% url 'user_create' %}">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <button type="submit" class="btn btn-primary">Создать</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% bootstrap_messages %}
+<script src="{% static 'js/user_management.js' %}"></script>
+{% endblock %}

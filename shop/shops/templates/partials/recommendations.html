@@ -1,9 +1,4 @@
 <div class="recommendations">
     <h3>Рекомендации</h3>
-    <p>Попробуйте наши популярные товары: 
-        {% for product in popular_products %}
-            <span class="product-item">{{ product.name }} ({{ product.price }} руб.)</span>
-        {% endfor %}
-    </p>
-    <a href="{% url 'all_products' %}" class="btn btn-secondary">Смотреть все</a>
+    <p>Популярные товары, которые могут вам понравиться.</p>
 </div>

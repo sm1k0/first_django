@@ -1,10 +1,11 @@
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название категории")
     slug = models.SlugField(max_length=100, unique=True, verbose_name="URL-имя")
-    image = models.URLField(max_length=500, blank=True, null=True, verbose_name="Ссылка на изображение")
+    image = models.ImageField(upload_to='categories/', blank=True, null=True, verbose_name="Изображение")
 
     def __str__(self):
         return self.name
@@ -38,7 +39,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(verbose_name="Остаток на складе")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="Категория")
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Производитель")
-    main_image = models.URLField(max_length=500, verbose_name="Ссылка на основное изображение")
+    main_image = models.ImageField(upload_to='products/', verbose_name="Основное изображение")
 
     def __str__(self):
         return self.name
@@ -50,18 +51,8 @@ class Product(models.Model):
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
 
-class ProductImage(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images', verbose_name="Товар")
-    image = models.URLField(max_length=500, verbose_name="Ссылка на изображение")
-
-    def __str__(self):
-        return f"Изображение для {self.product.name}"
-
-    class Meta:
-        verbose_name = "Изображение товара"
-        verbose_name_plural = "Изображения товаров"
-
 class Customer(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     first_name = models.CharField(max_length=100, verbose_name="Имя")
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")
     email = models.EmailField(unique=True, verbose_name="Email")

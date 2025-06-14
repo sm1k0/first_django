@@ -5,36 +5,57 @@
     <div class="content">
         <h1>Управление товарами и производителями</h1>
         
-        <!-- Форма для создания/редактирования товара -->
         <h2>{% if edit_product %}Редактировать товар{% else %}Добавить товар{% endif %}</h2>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data" action="{% if edit_product %}{% url 'product_update' edit_product.slug %}{% else %}{% url 'product_create' %}{% endif %}">
             {% csrf_token %}
             {% bootstrap_form product_form %}
+            {% if product_form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in product_form.errors.items %}
+                    {% for error in errors %}
+                    <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
             <button type="submit" name="save_product" class="btn btn-primary">Сохранить товар</button>
             {% if edit_product %}
             <a href="{% url 'product_crud' %}" class="btn btn-secondary">Отмена</a>
             {% endif %}
         </form>
 
-        <!-- Форма для создания/редактирования производителя -->
         <h2>{% if edit_manufacturer %}Редактировать производителя{% else %}Добавить производителя{% endif %}</h2>
-        <form method="post">
+        <form method="post" action="{% if edit_manufacturer %}{% url 'manufacturer_update' edit_manufacturer.pk %}{% else %}{% url 'manufacturer_create' %}{% endif %}">
             {% csrf_token %}
             {% bootstrap_form manufacturer_form %}
+            {% if manufacturer_form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in manufacturer_form.errors.items %}
+                    {% for error in errors %}
+                    <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
             <button type="submit" name="save_manufacturer" class="btn btn-primary">Сохранить производителя</button>
             {% if edit_manufacturer %}
             <a href="{% url 'product_crud' %}" class="btn btn-secondary">Отмена</a>
             {% endif %}
         </form>
 
-        <!-- Список товаров -->
         <h2>Список товаров</h2>
         <div class="row">
             {% for product in products %}
             <div class="col-md-4">
                 <div class="card mb-3">
                     {% if product.main_image %}
-                    <img src="{{ product.main_image }}" alt="{{ product.name }}" class="card-img-top" style="height: 200px; object-fit: contain;">
+                    <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="card-img-top" style="height: 200px; object-fit: contain;">
+                    {% else %}
+                    <div class="card-img-top bg-light text-center" style="height: 200px; line-height: 200px;">Нет изображения</div>
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ product.name }}</h5>
@@ -44,12 +65,12 @@
                         {% if product.manufacturer %}
                         <p class="card-text">Производитель: {{ product.manufacturer }}</p>
                         {% endif %}
-                        <a href="{% url 'product_crud' product.slug %}" class="btn btn-info btn-sm">Редактировать</a>
-                        <form method="post" style="display:inline;">
+                        <a href="{% url 'product_update' product.slug %}" class="btn btn-info btn-sm">Редактировать</a>
+                        <form method="post" action="{% url 'product_delete' product.slug %}" style="display:inline;">
                             {% csrf_token %}
-                            <input type="hidden" name="slug" value="{{ product.slug }}">
-                            <button type="submit" name="delete_product" class="btn btn-danger btn-sm">Удалить</button>
+                            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                         </form>
+                        <a href="{% url 'add_to_cart' product.id %}" class="btn btn-primary btn-sm mt-2">Добавить в корзину</a>
                     </div>
                 </div>
             </div>
@@ -58,17 +79,15 @@
             {% endfor %}
         </div>
 
-        <!-- Список производителей -->
         <h2>Список производителей</h2>
         <ul>
             {% for manufacturer in manufacturers %}
             <li>
                 {{ manufacturer.name }} ({{ manufacturer.country }})
-                <a href="{% url 'product_crud' manufacturer_id=manufacturer.id %}" class="btn btn-info btn-sm">Редактировать</a>
-                <form method="post" style="display:inline;">
+                <a href="{% url 'manufacturer_update' manufacturer.pk %}" class="btn btn-info btn-sm">Редактировать</a>
+                <form method="post" action="{% url 'manufacturer_delete' manufacturer.pk %}" style="display:inline;">
                     {% csrf_token %}
-                    <input type="hidden" name="manufacturer_id" value="{{ manufacturer.id }}">
-                    <button type="submit" name="delete_manufacturer" class="btn btn-danger btn-sm">Удалить</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                 </form>
             </li>
             {% empty %}
@@ -76,7 +95,6 @@
             {% endfor %}
         </ul>
 
-        <!-- Подробности выбранного товара -->
         {% if edit_product %}
         <h2>Подробности товара</h2>
         <p><strong>Название:</strong> {{ edit_product.name }}</p>
@@ -88,13 +106,12 @@
         <p><strong>Производитель:</strong> {{ edit_product.manufacturer|default:"Не указан" }}</p>
         {% if edit_product.main_image %}
         <p><strong>Изображение:</strong></p>
-        <img src="{{ edit_product.main_image }}" alt="{{ edit_product.name }}" style="max-width: 200px;">
+        <img src="{{ edit_product.main_image.url }}" alt="{{ edit_product.name }}" style="max-width: 200px;">
         {% else %}
         <p><strong>Изображение:</strong> Не указано</p>
         {% endif %}
         {% endif %}
 
-        <!-- Подробности выбранного производителя -->
         {% if edit_manufacturer %}
         <h2>Подробности производителя</h2>
         <p><strong>Название:</strong> {{ edit_manufacturer.name }}</p>

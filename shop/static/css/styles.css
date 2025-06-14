@@ -1,22 +1,22 @@
 /* Общие стили */
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #2c2c2c, #1a1a1a); /* Темный серый градиент */
+    background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
     margin: 0;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    color: #e0e0e0; /* Светло-серый текст для контраста */
+    color: #e0e0e0;
     position: relative;
     overflow-x: hidden;
 }
 
 /* Навигационная панель с Liquid Glass эффектом */
 .navbar {
-    background: rgba(44, 44, 44, 0.7); /* Полупрозрачный темный серый */
-    backdrop-filter: blur(12px); /* Рассеивание света */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Легкий белый контур */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Глубина */
+    background: rgba(44, 44, 44, 0.7);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -26,14 +26,31 @@ body {
 }
 
 .navbar-brand, .nav-link {
-    color: #ffffff !important; /* Белый текст */
+    color: #ffffff !important;
     transition: color 0.3s ease, transform 0.2s ease, text-shadow 0.3s ease;
 }
 
 .nav-link:hover {
-    color: #f0f0f0 !important; /* Легкий серый акцент при наведении */
+    color: #f0f0f0 !important;
     transform: translateY(-2px);
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4); /* Рассеивание света */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+.nav-link.active {
+    color: #ffffff !important;
+    position: relative;
+}
+
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 10px;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 C5 0, 15 0, 20 10' fill='%23ffffff'/%3E%3C/svg%3E") no-repeat center;
+    background-size: contain;
 }
 
 .navbar-toggler-icon {
@@ -49,12 +66,12 @@ body {
 }
 
 .content {
-    background: rgba(44, 44, 44, 0.5); /* Полупрозрачный темный серый слой */
-    backdrop-filter: blur(15px); /* Рассеивание света */
+    background: rgba(44, 44, 44, 0.5);
+    backdrop-filter: blur(15px);
     border-radius: 15px;
     padding: 30px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.1); /* Глубина и внутреннее свечение */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Легкий белый контур */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -64,17 +81,17 @@ body {
 }
 
 h1 {
-    color: #ffffff; /* Белый заголовок */
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); /* Глубина текста */
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 p, li {
-    color: #e0e0e0; /* Светло-серый текст для читаемости */
+    color: #e0e0e0;
 }
 
 /* Кнопки с Liquid Glass эффектом */
 .btn-primary {
-    background: linear-gradient(135deg, rgba(44, 44, 44, 0.8), rgba(26, 26, 26, 0.6)); /* Темный серый градиент */
+    background: linear-gradient(135deg, rgba(44, 44, 44, 0.8), rgba(26, 26, 26, 0.6));
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
     color: #ffffff;
@@ -98,10 +115,35 @@ p, li {
     background: rgba(26, 26, 26, 0.6);
 }
 
+/* Формы */
+.form-control {
+    background: rgba(44, 44, 44, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+    border-radius: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+    background: rgba(44, 44, 44, 0.8);
+}
+
+.login-form, .register-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background: rgba(44, 44, 44, 0.7);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
 /* Карточки товаров с Liquid Glass */
 .card {
-    background: rgba(44, 44, 44, 0.6); /* Полупрозрачный темный серый слой */
-    backdrop-filter: blur(10px); /* Рассеивание света */
+    background: rgba(44, 44, 44, 0.6);
+    backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -127,6 +169,77 @@ p, li {
     color: #e0e0e0;
     background: rgba(26, 26, 26, 0.3);
     backdrop-filter: blur(5px);
+}
+
+/* Кастомная таблица с Liquid Glass */
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(26, 26, 26, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.custom-table th, .custom-table td {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    text-align: left;
+    transition: background 0.3s ease;
+}
+
+.custom-table th {
+    background: rgba(44, 44, 44, 0.9);
+    color: #ffffff;
+    font-weight: bold;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.custom-table tbody tr:nth-child(odd) {
+    background: rgba(26, 26, 26, 0.7);
+}
+
+.custom-table tbody tr:hover {
+    background: rgba(44, 44, 44, 0.6);
+}
+
+.custom-table .editable:hover {
+    background: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+}
+
+.custom-table input {
+    background: rgba(44, 44, 44, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+    padding: 5px;
+    border-radius: 5px;
+    width: 100%;
+}
+
+/* Таблицы (для других страниц) */
+.table {
+    background: rgba(44, 44, 44, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table th, .table td {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+}
+
+.table thead {
+    background: rgba(26, 26, 26, 0.8);
+    color: #ffffff;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background: rgba(44, 44, 44, 0.4);
 }
 
 /* Футер с Liquid Glass */
@@ -186,46 +299,9 @@ footer {
     color: #e0e0e0;
 }
 
-/* Панель уведомлений */
-.admin-notifications {
-    margin-left: 20px;
-    background: rgba(44, 44, 44, 0.5);
-    backdrop-filter: blur(10px);
-    padding: 5px 10px;
-    border-radius: 10px;
-    transition: transform 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.admin-notifications:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
-}
-
-.admin-notifications .fa-bell {
-    margin-right: 5px;
+.cart-widget a {
     color: #e0e0e0;
-}
-
-/* Блок рекомендаций с Liquid Glass */
-.recommendations {
-    background: rgba(44, 44, 44, 0.6);
-    backdrop-filter: blur(15px);
-    border-radius: 15px;
-    padding: 15px;
-    margin-top: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-}
-
-.recommendations h3 {
-    color: #ffffff;
-    margin-bottom: 10px;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.15);
-}
-
-.recommendations p {
-    color: #e0e0e0;
+    text-decoration: none;
 }
 
 /* Анимации */
@@ -234,10 +310,6 @@ footer {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.container {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-.card {
+.container, .card {
     animation: fadeIn 0.7s ease-in-out;
 }

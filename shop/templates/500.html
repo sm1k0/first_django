@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Ошибка 500 - Внутренняя ошибка сервера{% endblock %}
+{% block content %}
+<div class="error-page">
+    <h1>Ошибка 500</h1>
+    <p>Произошла внутренняя ошибка сервера. Попробуйте позже.</p>
+    <img src="https://www.mvideo.ru/blog/wp-content/uploads/2025/05/cover_news_3.png" alt="Ошибка 500" class="error-image">
+    <a href="{% url 'home' %}" class="btn btn-primary">Вернуться на главную</a>
+</div>
+{% endblock %}

@@ -1,5 +1,7 @@
+{% load static %}
 <div class="cart-widget">
-    <a href="{% url 'cart' %}" class="nav-link">
-        <i class="fas fa-shopping-cart"></i> Корзина (<span id="cart-count">0</span>)
+    <a href="{% url 'cart' %}" class="text-decoration-none">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Корзина: {{ request.session.cart|length|default:0 }}</span>
     </a>
 </div>
