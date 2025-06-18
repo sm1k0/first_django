@@ -5,500 +5,545 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
-from django.contrib.auth import logout
-from django.http import JsonResponse
-from .models import Category, Product, Customer, Order, Review, Manufacturer, OrderItem
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.http import JsonResponse, Http404
 from .forms import CategoryForm, ProductForm, CustomerForm, OrderForm, ReviewForm, ManufacturerForm, RegisterForm
-from django.contrib.auth import logout
-from django.shortcuts import redirect
-from django.contrib import messages
+from .utils import api_request
+
 class AdminRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.is_staff
 
-class AdminMenuView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
+class AdminMenuView(AdminRequiredMixin, TemplateView):
     template_name = 'admin_menu.html'
 
-class CategoryListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
-    model = Category
+class CategoryListView(AdminRequiredMixin, ListView):
     template_name = 'category_crud.html'
     context_object_name = 'categories'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = CategoryForm()
-        context['edit_category'] = None
-        return context
+    def get_queryset(self):
+        data = api_request('GET', 'categories/', self.request)
+        return data['results'] if data else []
 
-class CategoryCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
-    model = Category
+class CategoryCreateView(AdminRequiredMixin, CreateView):
+    template_name = 'category_form.html'
     form_class = CategoryForm
-    template_name = 'category_crud.html'
     success_url = reverse_lazy('category_crud')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Категория сохранена.')
-        return super().form_valid(form)
+        response = api_request('POST', 'categories/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Категория создана.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка создания категории.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме категории.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all()
-        context['edit_category'] = None
-        return context
-
-class CategoryUpdateView(LoginRequiredMixin, AdminRequiredMixin, UpdateView):
-    model = Category
+class CategoryUpdateView(AdminRequiredMixin, UpdateView):
+    template_name = 'category_form.html'
     form_class = CategoryForm
-    template_name = 'category_crud.html'
     success_url = reverse_lazy('category_crud')
 
+    def get_object(self):
+        slug = self.kwargs['slug']
+        data = api_request('GET', f'categories/{slug}/', self.request)
+        if not data:
+            raise Http404
+        return data
+
+    def get_initial(self):
+        return self.get_object()
+
     def form_valid(self, form):
-        messages.success(self.request, 'Категория сохранена.')
-        return super().form_valid(form)
+        slug = self.kwargs['slug']
+        response = api_request('PATCH', f'categories/{slug}/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Категория обновлена.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка обновления категории.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме категории.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all()
-        context['edit_category'] = self.get_object()
-        return context
-
-class CategoryDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
-    model = Category
+class CategoryDeleteView(AdminRequiredMixin, DeleteView):
     success_url = reverse_lazy('category_crud')
 
-    def form_valid(self, form):
-        messages.success(self.request, 'Категория удалена.')
-        return super().form_valid(form)
+    def post(self, request, *args, **kwargs):
+        slug = self.kwargs['slug']
+        response = api_request('DELETE', f'categories/{slug}/', request)
+        if response is None:
+            messages.success(request, 'Категория удалена.')
+            return redirect(self.success_url)
+        messages.error(request, 'Ошибка удаления категории.')
+        return redirect(self.success_url)
 
-class ProductListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
-    model = Product
+class ProductListView(AdminRequiredMixin, ListView):
     template_name = 'product_crud.html'
     context_object_name = 'products'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['manufacturers'] = Manufacturer.objects.all()
-        context['product_form'] = ProductForm()
-        context['manufacturer_form'] = ManufacturerForm()
-        context['edit_product'] = None
-        context['edit_manufacturer'] = None
-        return context
+    def get_queryset(self):
+        data = api_request('GET', 'products/', self.request)
+        return data['results'] if data else []
 
-class ProductCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
-    model = Product
+class ProductCreateView(AdminRequiredMixin, CreateView):
+    template_name = 'product_form.html'
     form_class = ProductForm
-    template_name = 'product_crud.html'
     success_url = reverse_lazy('product_crud')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_valid(self, form):
-        messages.success(self.request, 'Товар сохранен.')
-        return super().form_valid(form)
+        response = api_request('POST', 'products/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Продукт создан.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка создания продукта.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме товара.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['products'] = Product.objects.all()
-        context['manufacturers'] = Manufacturer.objects.all()
-        context['product_form'] = self.get_form()
-        context['manufacturer_form'] = ManufacturerForm()
-        context['edit_product'] = None
-        context['edit_manufacturer'] = None
-        return context
-
-class ProductUpdateView(LoginRequiredMixin, AdminRequiredMixin, UpdateView):
-    model = Product
+class ProductUpdateView(AdminRequiredMixin, UpdateView):
+    template_name = 'product_form.html'
     form_class = ProductForm
-    template_name = 'product_crud.html'
     success_url = reverse_lazy('product_crud')
 
+    def get_object(self):
+        slug = self.kwargs['slug']
+        data = api_request('GET', f'products/{slug}/', self.request)
+        if not data:
+            raise Http404
+        return data
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def get_initial(self):
+        return self.get_object()
+
     def form_valid(self, form):
-        messages.success(self.request, 'Товар сохранен.')
-        return super().form_valid(form)
+        slug = self.kwargs['slug']
+        response = api_request('PATCH', f'products/{slug}/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Продукт обновлен.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка обновления продукта.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме товара.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['products'] = Product.objects.all()
-        context['manufacturers'] = Manufacturer.objects.all()
-        context['product_form'] = self.get_form()
-        context['manufacturer_form'] = ManufacturerForm()
-        context['edit_product'] = self.get_object()
-        context['edit_manufacturer'] = None
-        return context
-
-class ProductDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
-    model = Product
+class ProductDeleteView(AdminRequiredMixin, DeleteView):
     success_url = reverse_lazy('product_crud')
 
-    def form_valid(self, form):
-        messages.success(self.request, 'Товар удален.')
-        return super().form_valid(form)
+    def post(self, request, *args, **kwargs):
+        slug = self.kwargs['slug']
+        response = api_request('DELETE', f'products/{slug}/', request)
+        if response is None:
+            messages.success(request, 'Продукт удален.')
+            return redirect(self.success_url)
+        messages.error(request, 'Ошибка удаления продукта.')
+        return redirect(self.success_url)
 
-class ManufacturerCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
-    model = Manufacturer
+class ManufacturerCreateView(AdminRequiredMixin, CreateView):
+    template_name = 'manufacturer_form.html'
     form_class = ManufacturerForm
-    template_name = 'product_crud.html'
-    success_url = reverse_lazy('product_crud')
+    success_url = reverse_lazy('admin_dashboard')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Производитель сохранен.')
-        return super().form_valid(form)
+        response = api_request('POST', 'manufacturers/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Производитель создан.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка создания производителя.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме производителя.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['products'] = Product.objects.all()
-        context['manufacturers'] = Manufacturer.objects.all()
-        context['product_form'] = ProductForm()
-        context['manufacturer_form'] = self.get_form()
-        context['edit_product'] = None
-        context['edit_manufacturer'] = None
-        return context
-
-class ManufacturerUpdateView(LoginRequiredMixin, AdminRequiredMixin, UpdateView):
-    model = Manufacturer
+class ManufacturerUpdateView(AdminRequiredMixin, UpdateView):
+    template_name = 'manufacturer_form.html'
     form_class = ManufacturerForm
-    template_name = 'product_crud.html'
-    success_url = reverse_lazy('product_crud')
+    success_url = reverse_lazy('admin_dashboard')
+
+    def get_object(self):
+        pk = self.kwargs['pk']
+        data = api_request('GET', f'manufacturers/{pk}/', self.request)
+        if not data:
+            raise Http404
+        return data
+
+    def get_initial(self):
+        return self.get_object()
 
     def form_valid(self, form):
-        messages.success(self.request, 'Производитель сохранен.')
-        return super().form_valid(form)
+        pk = self.kwargs['pk']
+        response = api_request('PATCH', f'manufacturers/{pk}/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Производитель обновлен.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка обновления производителя.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме производителя.')
-        return super().form_invalid(form)
+class ManufacturerDeleteView(AdminRequiredMixin, DeleteView):
+    success_url = reverse_lazy('admin_dashboard')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['products'] = Product.objects.all()
-        context['manufacturers'] = Manufacturer.objects.all()
-        context['product_form'] = ProductForm()
-        context['manufacturer_form'] = self.get_form()
-        context['edit_product'] = None
-        context['edit_manufacturer'] = self.get_object()
-        return context
+    def post(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        response = api_request('DELETE', f'manufacturers/{pk}/', request)
+        if response is None:
+            messages.success(request, 'Производитель удален.')
+            return redirect(self.success_url)
+        messages.error(request, 'Ошибка удаления производителя.')
+        return redirect(self.success_url)
 
-class ManufacturerDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
-    model = Manufacturer
-    success_url = reverse_lazy('product_crud')
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Производитель удален.')
-        return super().form_valid(form)
-
-class CustomerListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
-    model = Customer
+class CustomerListView(AdminRequiredMixin, ListView):
     template_name = 'customer_crud.html'
     context_object_name = 'customers'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = CustomerForm()
-        context['edit_customer'] = None
-        return context
+    def get_queryset(self):
+        data = api_request('GET', 'customers/', self.request)
+        return data['results'] if data else []
 
-class CustomerCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
-    model = Customer
+class CustomerCreateView(AdminRequiredMixin, CreateView):
+    template_name = 'customer_form.html'
     form_class = CustomerForm
-    template_name = 'customer_crud.html'
     success_url = reverse_lazy('customer_crud')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Покупатель сохранен.')
-        return super().form_valid(form)
+        response = api_request('POST', 'customers/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Покупатель создан.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка создания покупателя.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме покупателя.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['customers'] = Customer.objects.all()
-        context['edit_customer'] = None
-        return context
-
-class CustomerUpdateView(LoginRequiredMixin, AdminRequiredMixin, UpdateView):
-    model = Customer
+class CustomerUpdateView(AdminRequiredMixin, UpdateView):
+    template_name = 'customer_form.html'
     form_class = CustomerForm
-    template_name = 'customer_crud.html'
     success_url = reverse_lazy('customer_crud')
 
+    def get_object(self):
+        pk = self.kwargs['pk']
+        data = api_request('GET', f'customers/{pk}/', self.request)
+        if not data:
+            raise Http404
+        return data
+
+    def get_initial(self):
+        return self.get_object()
+
     def form_valid(self, form):
-        messages.success(self.request, 'Покупатель сохранен.')
-        return super().form_valid(form)
+        pk = self.kwargs['pk']
+        response = api_request('PATCH', f'customers/{pk}/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Покупатель обновлен.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка обновления покупателя.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме покупателя.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['customers'] = Customer.objects.all()
-        context['edit_customer'] = self.get_object()
-        return context
-
-class CustomerDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
-    model = Customer
+class CustomerDeleteView(AdminRequiredMixin, DeleteView):
     success_url = reverse_lazy('customer_crud')
 
-    def form_valid(self, form):
-        messages.success(self.request, 'Покупатель удален.')
-        return super().form_valid(form)
+    def post(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        response = api_request('DELETE', f'customers/{pk}/', request)
+        if response is None:
+            messages.success(request, 'Покупатель удален.')
+            return redirect(self.success_url)
+        messages.error(request, 'Ошибка удаления покупателя.')
+        return redirect(self.success_url)
 
-class OrderListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
-    model = Order
+class OrderListView(AdminRequiredMixin, ListView):
     template_name = 'order_crud.html'
     context_object_name = 'orders'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = OrderForm()
-        context['edit_order'] = None
-        return context
+    def get_queryset(self):
+        data = api_request('GET', 'orders/', self.request)
+        return data['results'] if data else []
 
-class OrderCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
-    model = Order
+class OrderCreateView(AdminRequiredMixin, CreateView):
+    template_name = 'order_form.html'
     form_class = OrderForm
-    template_name = 'order_crud.html'
     success_url = reverse_lazy('order_crud')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_valid(self, form):
-        messages.success(self.request, 'Заказ сохранен.')
-        return super().form_valid(form)
+        response = api_request('POST', 'orders/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Заказ создан.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка создания заказа.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме заказа.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['orders'] = Order.objects.all()
-        context['edit_order'] = None
-        return context
-
-class OrderUpdateView(LoginRequiredMixin, AdminRequiredMixin, UpdateView):
-    model = Order
+class OrderUpdateView(AdminRequiredMixin, UpdateView):
+    template_name = 'order_form.html'
     form_class = OrderForm
-    template_name = 'order_crud.html'
     success_url = reverse_lazy('order_crud')
 
+    def get_object(self):
+        pk = self.kwargs['pk']
+        data = api_request('GET', f'orders/{pk}/', self.request)
+        if not data:
+            raise Http404
+        return data
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def get_initial(self):
+        return self.get_object()
+
     def form_valid(self, form):
-        messages.success(self.request, 'Заказ сохранен.')
-        return super().form_valid(form)
+        pk = self.kwargs['pk']
+        response = api_request('PATCH', f'orders/{pk}/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Заказ обновлен.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка обновления заказа.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме заказа.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['orders'] = Order.objects.all()
-        context['edit_order'] = self.get_object()
-        return context
-
-class OrderDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
-    model = Order
+class OrderDeleteView(AdminRequiredMixin, DeleteView):
     success_url = reverse_lazy('order_crud')
 
-    def form_valid(self, form):
-        messages.success(self.request, 'Заказ удален.')
-        return super().form_valid(form)
+    def post(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        response = api_request('DELETE', f'orders/{pk}/', request)
+        if response is None:
+            messages.success(request, 'Заказ удален.')
+            return redirect(self.success_url)
+        messages.error(request, 'Ошибка удаления заказа.')
+        return redirect(self.success_url)
 
-class ReviewListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
-    model = Review
+class ReviewListView(AdminRequiredMixin, ListView):
     template_name = 'review_crud.html'
     context_object_name = 'reviews'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = ReviewForm()
-        context['edit_review'] = None
-        return context
+    def get_queryset(self):
+        data = api_request('GET', 'reviews/', self.request)
+        return data['results'] if data else []
 
-class ReviewCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
-    model = Review
+class ReviewCreateView(AdminRequiredMixin, CreateView):
+    template_name = 'review_form.html'
     form_class = ReviewForm
-    template_name = 'review_crud.html'
     success_url = reverse_lazy('review_crud')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_valid(self, form):
-        messages.success(self.request, 'Отзыв сохранен.')
-        return super().form_valid(form)
+        response = api_request('POST', 'reviews/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Отзыв создан.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка создания отзыва.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме отзыва.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['reviews'] = Review.objects.all()
-        context['edit_review'] = None
-        return context
-
-class ReviewUpdateView(LoginRequiredMixin, AdminRequiredMixin, UpdateView):
-    model = Review
+class ReviewUpdateView(AdminRequiredMixin, UpdateView):
+    template_name = 'review_form.html'
     form_class = ReviewForm
-    template_name = 'review_crud.html'
     success_url = reverse_lazy('review_crud')
 
+    def get_object(self):
+        pk = self.kwargs['pk']
+        data = api_request('GET', f'reviews/{pk}/', self.request)
+        if not data:
+            raise Http404
+        return data
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def get_initial(self):
+        return self.get_object()
+
     def form_valid(self, form):
-        messages.success(self.request, 'Отзыв сохранен.')
-        return super().form_valid(form)
+        pk = self.kwargs['pk']
+        response = api_request('PATCH', f'reviews/{pk}/', self.request, data=form.cleaned_data)
+        if response:
+            messages.success(self.request, 'Отзыв обновлен.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка обновления отзыва.')
+        return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Ошибка в форме отзыва.')
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['reviews'] = Review.objects.all()
-        context['edit_review'] = self.get_object()
-        return context
-
-class ReviewDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
-    model = Review
+class ReviewDeleteView(AdminRequiredMixin, DeleteView):
     success_url = reverse_lazy('review_crud')
 
+    def post(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        response = api_request('DELETE', f'reviews/{pk}/', request)
+        if response is None:
+            messages.success(request, 'Отзыв удален.')
+            return redirect(self.success_url)
+        messages.error(request, 'Ошибка удаления отзыва.')
+        return redirect(self.success_url)
+
+class UserManagementView(AdminRequiredMixin, ListView):
+    template_name = 'user_management.html'
+    context_object_name = 'users'
+    queryset = User.objects.all()
+
+class UserCreateView(AdminRequiredMixin, CreateView):
+    template_name = 'user_form.html'
+    form_class = RegisterForm
+    success_url = reverse_lazy('user_management')
+
     def form_valid(self, form):
-        messages.success(self.request, 'Отзыв удален.')
-        return super().form_valid(form)
+        user = form.save()
+        if user:
+            messages.success(self.request, 'Пользователь создан.')
+            return redirect(self.success_url)
+        messages.error(self.request, 'Ошибка создания пользователя.')
+        return self.form_invalid(form)
+
+class UserDeleteView(AdminRequiredMixin, DeleteView):
+    model = User
+    success_url = reverse_lazy('user_management')
+
+    def post(self, request, *args, **kwargs):
+        user = self.get_object()
+        if user.is_staff or user.is_superuser:
+            messages.error(request, 'Нельзя удалить администратора.')
+            return redirect(self.success_url)
+        user.delete()
+        messages.success(request, 'Пользователь удален.')
+        return redirect(self.success_url)
+
+@login_required
+def user_update(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if not request.user.is_staff and request.user != user:
+        messages.error(request, 'У вас нет прав для редактирования этого пользователя.')
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = RegisterForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Данные пользователя обновлены.')
+            return redirect('user_management')
+        messages.error(request, 'Ошибка обновления данных.')
+    else:
+        form = RegisterForm(instance=user)
+    return render(request, 'user_form.html', {'form': form})
 
 class RegisterView(CreateView):
-    form_class = RegisterForm
     template_name = 'register.html'
+    form_class = RegisterForm
     success_url = reverse_lazy('login')
 
     def form_valid(self, form):
+        print("RegisterView: Form data:", form.cleaned_data)  # Отладка
         user = form.save()
-        Customer.objects.create(
-            user=user,
-            first_name=user.username,
-            last_name='',
-            email=user.email,
-            phone=''
-        )
-        messages.success(self.request, 'Регистрация успешна. Пожалуйста, войдите.')
-        return super().form_valid(form)
-
-class AllProductsView(ListView):
-    template_name = 'all_products.html'
-    context_object_name = 'products'
-    model = Product
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['request'] = self.request
-        return context
-
-class UserManagementView(LoginRequiredMixin, AdminRequiredMixin, ListView):
-    model = User
-    template_name = 'user_management.html'
-    context_object_name = 'users'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = RegisterForm()
-        return context
-
-class UserCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
-    form_class = RegisterForm
-    template_name = 'user_management.html'
-    success_url = reverse_lazy('user_management')
-
-    def form_valid(self, form):
-        user = form.save()
-        Customer.objects.create(
-            user=user,
-            first_name=user.username,
-            last_name='',
-            email=user.email,
-            phone=''
-        )
-        messages.success(self.request, 'Пользователь создан.')
-        return super().form_valid(form)
-
-class UserDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
-    model = User
-    success_url = reverse_lazy('user_management')
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Пользователь удален.')
-        return super().form_valid(form)
-
-@login_required
-@user_passes_test(lambda u: u.is_authenticated and u.is_staff)
-def user_update(request, pk):
+        if user:
+            # Создаем профиль покупателя без токена
+            customer_data = {
+                'user': user.id,
+                'first_name': form.cleaned_data['username'],
+                'last_name': '',
+                'email': form.cleaned_data['email'],
+                'phone': ''
+            }
+            print("Customer data:", customer_data)  # Отладка
+            response = api_request('POST', 'customers/', self.request, data=customer_data)
+            print("Customer API response:", response)  # Отладка
+            if response:
+                messages.success(self.request, 'Регистрация успешна. Пожалуйста, войдите.')
+                return redirect(self.success_url)
+            user.delete()
+            messages.error(self.request, 'Ошибка создания профиля покупателя.')
+        else:
+            messages.error(self.request, 'Ошибка регистрации.')
+        return self.form_invalid(form)
+def custom_login(request):
     if request.method == 'POST':
-        try:
-            user = User.objects.get(pk=pk)
-            customer = user.customer
-            data = request.POST.dict()
-            
-            if 'username' in data:
-                user.username = data['username']
-            if 'email' in data:
-                user.email = data['email']
-                customer.email = data['email']
-            if 'first_name' in data:
-                customer.first_name = data['first_name']
-            if 'last_name' in data:
-                customer.last_name = data['last_name']
-            if 'phone' in data:
-                customer.phone = data['phone']
-            if 'is_staff' in data:
-                user.is_staff = data['is_staff'].lower() == 'true'
-            if 'is_active' in data:
-                user.is_active = data['is_active'].lower() == 'true'
+        form = AuthenticationForm(request, data=request.POST)
+        print("POST data:", request.POST)  # Отладка
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            print(f"Username: {username}, Password: {password}")  # Отладка
+            # Прямой API-запрос для отладки
+            import requests
+            api_url = 'http://127.0.0.1:8000/api/auth/login/'
+            api_data = {'username': username, 'password': password}
+            print("API request data:", api_data)  # Отладка
+            try:
+                api_response = requests.post(api_url, json=api_data)
+                print("API raw response:", api_response.status_code, api_response.text)  # Отладка
+                response_data = api_response.json()
+            except Exception as e:
+                print("API request error:", str(e))  # Отладка
+                response_data = None
+            # Используем api_request как раньше
+            response = api_request('POST', 'auth/login/', request, data=api_data)
+            print("api_request response:", response)  # Отладка
+            if response and 'token' in response:
+                request.session['api_token'] = response['token']
+                user = authenticate(request, username=username, password=password)
+                print("Django auth user:", user)  # Отладка
+                if user:
+                    login(request, user)
+                    messages.success(request, 'Вы успешно вошли.')
+                    return redirect('home')
+                else:
+                    messages.error(request, 'Ошибка аутентификации.')
+            else:
+                messages.error(request, 'Неверные учетные данные.')
+        else:
+            print("Form errors:", form.errors)  # Отладка
+            messages.error(request, 'Ошибка в данных формы.')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+def custom_logout(request):
+    logout(request)
+    request.session.flush()
+    messages.success(request, 'Вы успешно вышли из аккаунта.')
+    return redirect('login')
 
-            user.save()
-            customer.save()
-            return JsonResponse({'success': True})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
+class AllProductsView(TemplateView):
+    template_name = 'all_products.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        products_data = api_request('GET', 'products/', self.request)
+        context['products'] = products_data['results'] if products_data else []
+        return context
 
 def home(request):
-    popular_products = Product.objects.order_by('-stock')[:3]
-    return render(request, 'home.html', {'request': request, 'popular_products': popular_products})
+    popular_products_data = api_request('GET', 'products/?ordering=-stock&page_size=3', request)
+    popular_products = popular_products_data['results'] if popular_products_data else []
+    return render(request, 'home.html', {'popular_products': popular_products})
 
 def about(request):
-    return render(request, 'about.html', {'request': request})
+    return render(request, 'about.html')
 
 def contacts(request):
-    return render(request, 'contacts.html', {'request': request})
+    return render(request, 'contacts.html')
 
 def find_us(request):
-    return render(request, 'find_us.html', {'request': request})
+    return render(request, 'find_us.html')
 
 def products(request):
-    return render(request, 'products.html', {'request': request})
+    return render(request, 'products.html')
 
 def categories(request):
-    categories = Category.objects.all()
-    return render(request, 'categories.html', {'request': request, 'categories': categories})
+    categories_data = api_request('GET', 'categories/', request)
+    categories = categories_data['results'] if categories_data else []
+    return render(request, 'categories.html', {'categories': categories})
 
 def category_products(request, slug):
-    category = get_object_or_404(Category, slug=slug)
-    products = Product.objects.filter(category=category)
-    return render(request, 'category_products.html', {'request': request, 'category': category, 'products': products})
+    category_data = api_request('GET', f'categories/{slug}/', request)
+    if not category_data:
+        raise Http404
+    products_data = api_request('GET', f'products/?category={category_data["id"]}', request)
+    products = products_data['results'] if products_data else []
+    return render(request, 'category_products.html', {'category': category_data, 'products': products})
 
 def cart(request):
     if not request.user.is_authenticated:
@@ -506,43 +551,62 @@ def cart(request):
         return redirect('login')
     
     cart = request.session.get('cart', {})
-    products = Product.objects.filter(id__in=cart.keys())
+    product_ids = list(cart.keys())
+    if not product_ids:
+        return render(request, 'cart.html', {'cart_items': [], 'total_price': 0})
+    
+    products_data = api_request('GET', f'products/?ids={",".join(product_ids)}', request)
+    products = products_data['results'] if products_data else []
+    
     cart_items = []
     total_price = 0
     for product in products:
-        quantity = cart.get(str(product.id), 0)
-        total_price += product.price * quantity
-        cart_items.append({'product': product, 'quantity': quantity, 'subtotal': product.price * quantity})
-    return render(request, 'cart.html', {'request': request, 'cart_items': cart_items, 'total_price': total_price})
+        product_id = str(product['id'])
+        if product_id in cart:
+            quantity = cart[product_id]
+            subtotal = float(product['price']) * quantity
+            total_price += subtotal
+            cart_items.append({
+                'product': product,
+                'quantity': quantity,
+                'subtotal': subtotal
+            })
+    return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
 
 @login_required
 def add_to_cart(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    if product.stock < 1:
+    product_data = api_request('GET', f'products/{product_id}/', request)
+    if not product_data or product_data['stock'] < 1:
         messages.error(request, 'Товара нет в наличии.')
         return redirect('all_products')
+    
     cart = request.session.get('cart', {})
     cart[str(product_id)] = cart.get(str(product_id), 0) + 1
     request.session['cart'] = cart
     request.session.modified = True
-    messages.success(request, f'{product.name} добавлен в корзину.')
+    messages.success(request, f"{product_data['name']} добавлен в корзину.")
     return redirect('cart')
 
 @login_required
 def update_cart(request, product_id):
     if request.method == 'POST':
-        product = get_object_or_404(Product, id=product_id)
+        product_data = api_request('GET', f'products/{product_id}/', request)
+        if not product_data:
+            messages.error(request, 'Товар не найден.')
+            return redirect('cart')
+        
         quantity = int(request.POST.get('quantity', 1))
         if quantity < 1:
             quantity = 1
-        if quantity > product.stock:
-            messages.error(request, f'Недостаточно товара {product.name} на складе.')
+        if quantity > product_data['stock']:
+            messages.error(request, f'Недостаточно товара {product_data["name"]} на складе.')
             return redirect('cart')
+        
         cart = request.session.get('cart', {})
         cart[str(product_id)] = quantity
         request.session['cart'] = cart
         request.session.modified = True
-        messages.success(request, f'Количество товара {product.name} обновлено.')
+        messages.success(request, f'Количество товара {product_data["name"]} обновлено.')
         return redirect('cart')
     return redirect('cart')
 
@@ -563,48 +627,47 @@ def create_order(request):
         messages.error(request, 'Корзина пуста.')
         return redirect('cart')
     
-    try:
-        customer = Customer.objects.get(email=request.user.email)
-    except Customer.DoesNotExist:
+    customer_data = api_request('GET', f'customers/?email={request.user.email}', request)
+    if not customer_data or not customer_data['results']:
         messages.error(request, 'Пожалуйста, обновите данные профиля.')
         return redirect('cart')
+    customer_id = customer_data['results'][0]['id']
 
-    order = Order.objects.create(customer=customer, status='pending')
+    order_data = {'customer': customer_id, 'status': 'pending'}
+    order_response = api_request('POST', 'orders/', request, data=order_data)
+    if not order_response:
+        messages.error(request, 'Ошибка создания заказа.')
+        return redirect('cart')
+    
+    order_id = order_response['id']
     total_price = 0
     for product_id, quantity in cart.items():
-        product = get_object_or_404(Product, id=product_id)
-        if product.stock < quantity:
-            messages.error(request, f'Недостаточно товара {product.name} на складе.')
-            order.delete()
+        product_data = api_request('GET', f'products/{product_id}/', request)
+        if not product_data or product_data['stock'] < quantity:
+            messages.error(request, f'Недостаточно товара {product_data["name"]} на складе.')
+            api_request('DELETE', f'orders/{order_id}/', request)
             return redirect('cart')
-        product.stock -= quantity
-        product.save()
-        subtotal = product.price * quantity
-        OrderItem.objects.create(order=order, product=product, quantity=quantity, price=subtotal)
+        
+        subtotal = float(product_data['price']) * quantity
+        order_item_data = {
+            'order': order_id,
+            'product': product_id,
+            'quantity': quantity,
+            'price': subtotal
+        }
+        api_request('POST', 'order-items/', request, data=order_item_data)
+        
+        product_update_data = {'stock': product_data['stock'] - quantity}
+        api_request('PATCH', f'products/{product_id}/', request, data=product_update_data)
         total_price += subtotal
     
     del request.session['cart']
     request.session.modified = True
-    messages.success(request, f'Заказ #{order.id} успешно создан.')
+    messages.success(request, f'Заказ #{order_id} успешно создан.')
     return redirect('home')
 
-def custom_logout(request):
-    logout(request)
-    request.session.flush()
-    messages.success(request, 'Вы успешно вышли из аккаунта.')
-    return redirect('login')  # Перенаправление на страницу логина
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
 
 def custom_500(request):
     return render(request, '500.html', status=500)
-
-class OrderManagementView(LoginRequiredMixin, AdminRequiredMixin, ListView):
-    model = Order
-    template_name = 'order_management.html'
-    context_object_name = 'orders'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['orders'] = Order.objects.all().prefetch_related('orderitem_set__product')
-        return context

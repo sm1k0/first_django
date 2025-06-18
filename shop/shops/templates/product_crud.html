@@ -27,7 +27,7 @@
         </form>
 
         <h2>{% if edit_manufacturer %}Редактировать производителя{% else %}Добавить производителя{% endif %}</h2>
-        <form method="post" action="{% if edit_manufacturer %}{% url 'manufacturer_update' edit_manufacturer.pk %}{% else %}{% url 'manufacturer_create' %}{% endif %}">
+        <form method="post" action="{% if edit_manufacturer %}{% url 'manufacturer_update' edit_manufacturer.id %}{% else %}{% url 'manufacturer_create' %}{% endif %}">
             {% csrf_token %}
             {% bootstrap_form manufacturer_form %}
             {% if manufacturer_form.errors %}
@@ -53,7 +53,7 @@
             <div class="col-md-4">
                 <div class="card mb-3">
                     {% if product.main_image %}
-                    <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="card-img-top" style="height: 200px; object-fit: contain;">
+                    <img src="{{ product.main_image }}" alt="{{ product.name }}" class="card-img-top" style="height: 200px; object-fit: contain;">
                     {% else %}
                     <div class="card-img-top bg-light text-center" style="height: 200px; line-height: 200px;">Нет изображения</div>
                     {% endif %}
@@ -61,9 +61,9 @@
                         <h5 class="card-title">{{ product.name }}</h5>
                         <p class="card-text">Цена: {{ product.price }} руб.</p>
                         <p class="card-text">Остаток: {{ product.stock }}</p>
-                        <p class="card-text">Категория: {{ product.category }}</p>
+                        <p class="card-text">Категория: {{ product.category.name }}</p>
                         {% if product.manufacturer %}
-                        <p class="card-text">Производитель: {{ product.manufacturer }}</p>
+                        <p class="card-text">Производитель: {{ product.manufacturer.name }}</p>
                         {% endif %}
                         <a href="{% url 'product_update' product.slug %}" class="btn btn-info btn-sm">Редактировать</a>
                         <form method="post" action="{% url 'product_delete' product.slug %}" style="display:inline;">
@@ -84,8 +84,8 @@
             {% for manufacturer in manufacturers %}
             <li>
                 {{ manufacturer.name }} ({{ manufacturer.country }})
-                <a href="{% url 'manufacturer_update' manufacturer.pk %}" class="btn btn-info btn-sm">Редактировать</a>
-                <form method="post" action="{% url 'manufacturer_delete' manufacturer.pk %}" style="display:inline;">
+                <a href="{% url 'manufacturer_update' manufacturer.id %}" class="btn btn-info btn-sm">Редактировать</a>
+                <form method="post" action="{% url 'manufacturer_delete' manufacturer.id %}" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                 </form>
@@ -102,11 +102,11 @@
         <p><strong>Описание:</strong> {{ edit_product.description }}</p>
         <p><strong>Цена:</strong> {{ edit_product.price }} руб.</p>
         <p><strong>Остаток:</strong> {{ edit_product.stock }}</p>
-        <p><strong>Категория:</strong> {{ edit_product.category }}</p>
-        <p><strong>Производитель:</strong> {{ edit_product.manufacturer|default:"Не указан" }}</p>
+        <p><strong>Категория:</strong> {{ edit_product.category.name }}</p>
+        <p><strong>Производитель:</strong> {{ edit_product.manufacturer.name|default:"Не указан" }}</p>
         {% if edit_product.main_image %}
         <p><strong>Изображение:</strong></p>
-        <img src="{{ edit_product.main_image.url }}" alt="{{ edit_product.name }}" style="max-width: 200px;">
+        <img src="{{ edit_product.main_image }}" alt="{{ edit_product.name }}" style="max-width: 200px;">
         {% else %}
         <p><strong>Изображение:</strong> Не указано</p>
         {% endif %}

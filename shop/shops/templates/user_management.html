@@ -28,9 +28,9 @@
                         <td>{{ user.id }}</td>
                         <td class="editable" data-field="username">{{ user.username }}</td>
                         <td class="editable" data-field="email">{{ user.email }}</td>
-                        <td class="editable" data-field="first_name">{{ user.customer.first_name|default:"-" }}</td>
-                        <td class="editable" data-field="last_name">{{ user.customer.last_name|default:"-" }}</td>
-                        <td class="editable" data-field="phone">{{ user.customer.phone|default:"-" }}</td>
+                        <td class="editable" data-field="first_name">{{ user.first_name|default:"-" }}</td>
+                        <td class="editable" data-field="last_name">{{ user.last_name|default:"-" }}</td>
+                        <td class="editable" data-field="phone">{{ user.phone|default:"-" }}</td>
                         <td class="editable" data-field="is_staff">{{ user.is_staff|yesno:"Да,Нет" }}</td>
                         <td class="editable" data-field="is_active">{{ user.is_active|yesno:"Да,Нет" }}</td>
                         <td>{{ user.date_joined|date:"d.m.Y H:i" }}</td>

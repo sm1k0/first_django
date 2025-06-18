@@ -6,7 +6,7 @@
         <h1>Управление заказами</h1>
         
         <h2>{% if edit_order %}Редактировать заказ{% else %}Добавить заказ{% endif %}</h2>
-        <form method="post" action="{% if edit_order %}{% url 'order_update' edit_order.pk %}{% else %}{% url 'order_create' %}{% endif %}">
+        <form method="post" action="{% if edit_order %}{% url 'order_update' edit_order.id %}{% else %}{% url 'order_create' %}{% endif %}">
             {% csrf_token %}
             {% bootstrap_form form %}
             {% if form.errors %}
@@ -30,9 +30,9 @@
         <ul>
             {% for order in orders %}
             <li>
-                Заказ #{{ order.id }} ({{ order.customer }} - {{ order.status }})
-                <a href="{% url 'order_update' order.pk %}" class="btn btn-info btn-sm">Редактировать</a>
-                <form method="post" action="{% url 'order_delete' order.pk %}" style="display:inline;">
+                Заказ #{{ order.id }} ({{ order.customer.first_name }} {{ order.customer.last_name }} - {{ order.status }})
+                <a href="{% url 'order_update' order.id %}" class="btn btn-info btn-sm">Редактировать</a>
+                <form method="post" action="{% url 'order_delete' order.id %}" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                 </form>
@@ -45,7 +45,7 @@
         {% if edit_order %}
         <h2>Подробности заказа</h2>
         <p><strong>Номер заказа:</strong> {{ edit_order.id }}</p>
-        <p><strong>Покупатель:</strong> {{ edit_order.customer }}</p>
+        <p><strong>Покупатель:</strong> {{ edit_order.customer.first_name }} {{ edit_order.customer.last_name }}</p>
         <p><strong>Статус:</strong> {{ edit_order.status }}</p>
         <p><strong>Дата создания:</strong> {{ edit_order.created_at }}</p>
         {% endif %}

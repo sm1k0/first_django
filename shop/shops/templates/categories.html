@@ -8,16 +8,18 @@
         <ul>
             {% for category in categories %}
             <li>
-                <a href="{% url 'product_crud' %}">{{ category.name }}</a>
+                <a href="{% url 'category_products' category.slug %}">{{ category.name }}</a>
                 {% if category.image %}
-                <img src="{{ category.image.url }}" alt="{{ category.name }}" style="max-width: 100px; margin-left: 10px;">
+                <img src="{{ category.image }}" alt="{{ category.name }}" style="max-width: 100px; margin-left: 10px;">
                 {% endif %}
             </li>
             {% empty %}
             <p>Категории отсутствуют.</p>
             {% endfor %}
         </ul>
+        {% if user.is_staff %}
         <p><a href="{% url 'category_crud' %}">Перейти к управлению категориями</a></p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
