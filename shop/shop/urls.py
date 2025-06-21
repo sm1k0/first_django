@@ -8,7 +8,7 @@ handler404 = custom_404
 handler500 = custom_500
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('api_store.urls')),  # Changed from 'api_shop.urls' to 'api_store.urls'
+    path('adminn/', admin.site.urls),  # Added Django admin path
+    path('api/', include('api_store.urls')),
     path('', include('shops.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

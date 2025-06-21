@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% block content %}
+<div class="container">
+    <div class="content">
+        <h1>{% if form.instance.id %}Редактировать отзыв{% else %}Добавить отзыв{% endif %}</h1>
+        <form method="post" action="{% if form.instance.id %}{% url 'review_update' form.instance.id %}{% else %}{% url 'review_create' %}{% endif %}">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">Сохранить отзыв</button>
+            <a href="{% url 'review_crud' %}" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% bootstrap_messages %}
+{% endblock %}

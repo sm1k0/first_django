@@ -1,35 +1,69 @@
 {% extends 'base.html' %}
 {% load django_bootstrap5 %}
-{% block title %}Все товары - Ашан{% endblock %}
+{% block title %}Все продукты{% endblock %}
 {% block content %}
 <div class="container">
-    <div class="content">
-        <h1>Все товары</h1>
-        <div class="row">
-            {% for product in products %}
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    {% if product.main_image %}
-                    <img src="{{ product.main_image }}" class="card-img-top" alt="{{ product.name }}">
+    <h1>Продукты</h1>
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Поиск по названию или описанию" value="{{ search_query }}">
+            <button type="submit" class="btn btn-primary">Поиск</button>
+        </div>
+        <div class="mt-2">
+            <label for="page_size">Продуктов на странице:</label>
+            <select name="page_size" id="page_size" onchange="this.form.submit()">
+                <option value="5" {% if page_size == '5' %}selected{% endif %}>5</option>
+                <option value="10" {% if page_size == '10' %}selected{% endif %}>10</option>
+                <option value="20" {% if page_size == '20' %}selected{% endif %}>20</option>
+            </select>
+        </div>
+    </form>
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                {% if product.main_image %}
+                <img src="{{ product.main_image }}" class="card-img-top" alt="{{ product.name }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.description|truncatewords:20 }}</p>
+                    <p class="card-text">Цена: {{ product.price }} руб.</p>
+                    <p class="card-text">В наличии: {{ product.stock }}</p>
+                    <a href="{% url 'home' %}?search={{ product.name }}" class="btn btn-outline-primary">Подробнее</a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'add_to_cart' product.id %}" class="btn btn-primary">Добавить в корзину</a>
+                    {% else %}
+                    <p>Пожалуйста, <a href="{% url 'login' %}">авторизуйтесь</a> для добавления в корзину.</p>
                     {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ product.name }}</h5>
-                        <p class="card-text">{{ product.description|truncatewords:20 }}</p>
-                        <p class="card-text"><strong>Цена:</strong> {{ product.price }} ₽</p>
-                        <p class="card-text"><strong>В наличии:</strong> {{ product.stock }}</p>
-                        {% if user.is_authenticated %}
-                        <a href="{% url 'add_to_cart' product.id %}" class="btn btn-primary">Добавить в корзину</a>
-                        {% else %}
-                        <p>Пожалуйста, <a href="{% url 'login' %}">авторизуйтесь</a> для добавления в корзину.</p>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
-            {% empty %}
-            <p>Товары отсутствуют.</p>
-            {% endfor %}
         </div>
+        {% empty %}
+        <p>Продукты не найдены.</p>
+        {% endfor %}
     </div>
+    {% if pagination.count > 0 %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if pagination.previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ pagination.current_page|add:-1 }}&page_size={{ page_size }}{% if search_query %}&search={{ search_query }}{% endif %}">Предыдущая</a>
+            </li>
+            {% endif %}
+            {% for page in pagination.range_pages %}
+            <li class="page-item {% if page == pagination.current_page %}active{% endif %}">
+                <a class="page-link" href="?page={{ page }}&page_size={{ page_size }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ page }}</a>
+            </li>
+            {% endfor %}
+            {% if pagination.next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ pagination.current_page|add:1 }}&page_size={{ page_size }}{% if search_query %}&search={{ search_query }}{% endif %}">Следующая</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% bootstrap_messages %}
 {% endblock %}

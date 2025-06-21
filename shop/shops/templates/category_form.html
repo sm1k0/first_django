@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% block content %}
+<div class="container">
+    <div class="content">
+        <h1>{% if form.instance.id %}Редактировать категорию{% else %}Добавить категорию{% endif %}</h1>
+        <form method="post" enctype="multipart/form-data" action="{% if form.instance.id %}{% url 'category_update' form.instance.slug %}{% else %}{% url 'category_create' %}{% endif %}">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">Сохранить категорию</button>
+            <a href="{% url 'category_crud' %}" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% bootstrap_messages %}
+{% endblock %}
